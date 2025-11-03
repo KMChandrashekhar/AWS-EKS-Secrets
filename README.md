@@ -26,3 +26,23 @@ helm install -n kube-system csi-secrets-store \
   --set rotationPollInterval=15s \
   secrets-store-csi-driver/secrets-store-csi-driver
 ```
+
+# AWS Secrets and Configuration Provider
+
+```
+kubectl apply -f https://raw.githubusercontent.com/aws/secrets-store-csi-driver-provider-aws/main/deployment/aws-provider-installer.yaml
+```
+
+# Verify the installations
+
+```
+kubectl get daemonsets -n kube-system -l app=csi-secrets-store-provider-aws
+kubectl get daemonsets -n kube-system -l app.kubernetes.io/instance=csi-secrets-store
+```
+
+
+### Create an IAM OIDC identity provider for your cluster.
+
+```
+eksctl utils associate-iam-oidc-provider --cluster secret-csi-cluster  --approve --region us-east-2
+```
