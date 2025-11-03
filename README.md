@@ -46,3 +46,67 @@ kubectl get daemonsets -n kube-system -l app.kubernetes.io/instance=csi-secrets-
 ```
 eksctl utils associate-iam-oidc-provider --cluster secret-csi-cluster  --approve --region us-east-2
 ```
+
+### Creating a policy where s3 bucket mentioned which has to be used by the pod. (aws-eks-secret-csi-demo)
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "<arn of your secret>"
+        }
+    ]
+}
+
+```
+
+```
+aws iam create-policy --policy-name aws-eks-secret-csi-demo --policy-document file://policy.json
+```
+
+### trust-relationship.json
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "<arn of your oidc>"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.us-east-2.amazonaws.com/id/<change it with your ID>:sub": "system:serviceaccount:ns:sa"
+                }
+            }
+        }
+    ]
+}
+
+```
+
+### Creating a role and appending the above trust policy.
+
+```
+aws iam create-role --role-name role-aws-eks-secret-csi-demo --assume-role-policy-document file://trust-relationship.json --description "secret-csi role description"
+```
+
+### Attaching the role with the policy we created in above steps
+
+```
+aws iam attach-role-policy --role-name role-aws-eks-secret-csi-demo --policy-arn=<policy arn>
+```
+
+### Appending Annotations in the ServiceAccount we have to use.
+
+```
+kubectl annotate serviceaccount my-sa eks.amazonaws.com/role-arn=<role arn>
+```
