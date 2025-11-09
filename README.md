@@ -9,7 +9,7 @@ and certs stored in enterprise-grade external secrets stores into their pods as 
 Once the Volume is attached, the data in it is mounted into the container's file system.
 ```
 
-### Install CSI drivers
+### Install CSI drivers using command
 
 
 # Secrets Store CSI Secret driver.
